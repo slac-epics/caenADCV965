@@ -17,6 +17,9 @@
 #
 #==============================================================
 #
+caenADCV965-R1-0-1-1:
+	modifications needed to bring the module to EPICS R3-14-9 standard
+
 caenADCV965-R1-0-1: Build with base-R3-14-9-lcls1
 
 caenADCV965-R1-0-1: Build with base-R3-14-8-2-lcls2
