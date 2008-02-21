@@ -17,6 +17,3 @@ Example file looks like so:
 EPICS_SITE_TOP=/usr/local/lcls/epics
 
 ================================================================
-
-To understand how to use the autosave module please see 
-the documentation directory.
