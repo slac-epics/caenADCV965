@@ -27,7 +27,8 @@
 #include "drvV965.h"
 #include "drvV965p.h"
 
-extern "C" void printk( char *fmt, ...);
+/* Not necessary in rtems 4.9 */
+/* extern "C" void printk( char *fmt, ...); */
 
 
 // ================== drvCaenV965Device Methods ============================
