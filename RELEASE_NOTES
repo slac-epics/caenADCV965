@@ -9,6 +9,8 @@
 #  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
 #--------------------------------------------------------------
 #  Mod:
+#        30-Apr-2009, K. Luchini         (LUCHINI):
+#          release caenADCV965-R2-0-0:
 #        08-Oct-2007, K. Luchini         (LUCHINI):
 #          release caenADCV965-R1-0-2
 #          release caenADCV965-R1-0-1
@@ -17,6 +19,8 @@
 #
 #==============================================================
 #
+caenADCV965-R2-0-0: Build with base-R3-14-8-2-lcls3 (RTEMS-4.9.1)
+
 caenADCV965-R1-0-1-1:
 	modifications needed to bring the module to EPICS R3-14-9 standard
 
