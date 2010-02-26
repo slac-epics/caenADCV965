@@ -19,6 +19,9 @@
 #
 #==============================================================
 #
+caenADCV965-R2-1-0:   Build with base-R3-14-8-2-lcls5
+                      Build with rtems-4.9.3
+
 caenADCV965-R2-0-0: Build with base-R3-14-8-2-lcls3 (RTEMS-4.9.1)
 
 caenADCV965-R1-0-1-1:
