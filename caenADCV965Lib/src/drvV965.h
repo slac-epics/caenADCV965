@@ -4,6 +4,7 @@
 #include "link.h" // from epics base:
 
 #include <epicsEvent.h>
+#include <epicsTypes.h>
 
 /******************************************************\
 |------------ Normal C interface points ---------------|
