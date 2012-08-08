@@ -93,9 +93,8 @@ init()
                 pvt->pBoard->bitSet2.set = drvCaenV965Registers::BS2_AllTrig  |
                                         drvCaenV965Registers::BS2_OverRangeEn |
                                         drvCaenV965Registers::BS2_LowThresholdEn |
-                                        drvCaenV965Registers::BS2_EmptyEnable ;
-                // Turn off the slide scale
-                pvt->pBoard->bitSet2.set = drvCaenV965Registers::BS2_SlideEn;
+                                        drvCaenV965Registers::BS2_EmptyEnable |
+                                        drvCaenV965Registers::BS2_SlideEn;
                 pvt->pBoard->SlideConstant = 0;
                 pvt->pBoard->GeoAddress = 0;
                 scanIoInit( &pvt->ioscanpvt);
@@ -499,7 +498,7 @@ getValue( int signal, const char * pparm , epicsInt32 * value) // Returns status
 		break;
 
 	case 'S':
-		*value = chanData[signal][ADC_HI].status&3<<2 | chanData[signal][ADC_LO].status&3 ;
+		*value = ((chanData[signal][ADC_HI].status&3)<<2) | (chanData[signal][ADC_LO].status&3) ;
 		break;
 
 	case 'T':
@@ -516,10 +515,10 @@ getValue( int signal, const char * pparm , epicsInt32 * value) // Returns status
 
 	default:
 	case 0:
-		if( chanData[signal][ADC_LO].status&2)
+		if( chanData[signal][ADC_LO].status&2 || (chanData[signal][ADC_LO].data > 3840))
                         {
                         tmp = chanData[signal][ADC_HI].data - chanData[signal][ADC_HI].threshold;
-                        *value = 8*tmp+(chanData[signal][ADC_HI].gain*tmp)/4096;
+                        *value = 8*tmp;
                         if( chanData[signal][ADC_HI].status&2)
                                 rv=-1;
                         // Check to see if the data was the latest 
