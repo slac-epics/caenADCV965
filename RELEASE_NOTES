@@ -21,6 +21,9 @@
 #
 #==============================================================
 #
+caenADCV965-R2-2-2: Release a tagged version of what is in MAIN_TRUNK.
+06-Mar-2013
+
 caenADCV965-R2-2-1:   Use $EPICS_BASE_VER macro in configure/RELEASE
 01/19/2012            Include epicsTypes.h in drvV965.h
                       Build with base-R3-14-12
