@@ -21,6 +21,9 @@
 #
 #==============================================================
 #
+caenADCV965-R2-2-3:  Change database Makefile to only use RULES 
+                     not RULES.db in the local area
+
 caenADCV965-R2-2-2: Release a tagged version of what is in MAIN_TRUNK.
 06-Mar-2013
 
