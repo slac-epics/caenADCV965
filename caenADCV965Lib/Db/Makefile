@@ -6,6 +6,7 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
+
 DB += caen_V965.template
 DB += caen_V965Debug.template
 
@@ -13,7 +14,6 @@ DB += caen_V965Debug.template
 #----------------------------------------------------
 
 include $(TOP)/configure/RULES
-include $(TOP)/configure/RULES.Db
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
 
