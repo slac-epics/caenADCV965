@@ -9,6 +9,8 @@
 #  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
 #--------------------------------------------------------------
 #  Mod:
+#        17-Jun-2013, S. Condamoor		 (SCONDAM):
+#          caenADCV965-R2-2-4 - driver modified to work with both 8-ch and 16-ch boards.
 #        20-Mar-2010, S. Hoobler         (SONYA):
 #          release caenADCV965-R2-2-0:
 #        30-Apr-2009, K. Luchini         (LUCHINI):
@@ -21,6 +23,24 @@
 #
 #==============================================================
 #
+caenADCV965-R2-2-4:  Shantha Condamoor 
+                     Modified on 17-Jun-2013
+					The Caen ADC driver was modified:
+    					(1) To work with both 8-ch and 16-ch boards
+						(2) 'old' and 'new' models
+						(3) Several bug fixes from Spear (S.Allison) have been included in this release.
+	
+					The driver is 'backward-compatible' - i.e., nothing needs to be done for a 16-ch board.
+					Call a different config function from st.cmd for 8-ch board
+
+					Example st.cmd that has one 16-ch board and one 8-ch board:
+
+					# 16-channel board - same as before
+					caenV965Config( 0, 0x00A00000, 24, 90, 3, 0)
+
+					# 8-channel board - add "_8" to caenV965Config
+					caenV965Config_8( 1, 0x00C00000, 24, 91, 3, 0)				 
+					 
 caenADCV965-R2-2-3:  Change database Makefile to only use RULES 
                      not RULES.db in the local area
 

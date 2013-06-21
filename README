@@ -17,3 +17,22 @@ Example file looks like so:
 EPICS_SITE_TOP=/usr/local/lcls/epics
 
 ================================================================
+
+Shantha Condamoor
+19-Jun-2013:
+
+The Caen ADC driver was modified:
+    (1) To work with both 8-ch and 16-ch boards
+	(2) 'old' and 'new' models
+	(3) Several bug fixes from Spear (S.Allison) have been included in this release.
+	
+The driver is 'backward-compatible' - i.e., nothing needs to be done for a 16-ch board.
+Call a different config function from st.cmd for 8-ch board
+
+Example st.cmd that has one 16-ch board and one 8-ch board
+
+# 16-channel board - same as before
+caenV965Config( 0, 0x00A00000, 24, 90, 3, 0)
+
+# 8-channel board - add "_8" to caenV965Config
+caenV965Config_8( 1, 0x00C00000, 24, 91, 3, 0)
