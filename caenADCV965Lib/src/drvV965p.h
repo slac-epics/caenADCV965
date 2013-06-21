@@ -12,7 +12,7 @@
 
 /*
  * file:                drvV965p.h
- * purpose:             Driver for CAEN V965 VME Charge Integrating Dual Range ADC
+ * purpose:             Driver for 8-channel and 16-channel CAEN V965 VME Charge Integrating Dual Range ADC
  * created:             28-Oct-2005
  *                      Oak Ridge National Laboratory
  *
@@ -20,6 +20,7 @@
  *   28-Oct-2005        David H Thompson        initial version
  *   17-Aug-2006        Doug Murray             updated
  */
+		
 class drvCaenV965Device;
 
 class drvCaenV965Registers
@@ -29,6 +30,7 @@ class drvCaenV965Registers
 
         public:
                 static const int CAEN_NUM_SIGNALS = 16;
+                /* static const int CAEN_NUM_SIGNALS = 8; //hmr for V965A				 */
                 static const int CAEN_MODEL_NUMBER = 965;
 
                 void show();
@@ -37,9 +39,9 @@ class drvCaenV965Registers
                 inline unsigned short getIped();
                 inline void setIped( unsigned short val);
                 inline int config( int vector, int level);
-                inline void enableChannel( int chan, bool enable);
-                inline void enableLoChannel( int chan, bool enable);
-                inline void enableHiChannel( int chan, bool enable);
+                inline void enableChannel( int chan, bool enable, int eight_ch_board);
+                inline void enableLoChannel( int chan, bool enable, int eight_ch_board);
+                inline void enableHiChannel( int chan, bool enable, int eight_ch_board);
 
         private:
                 drvCaenV965Registers()
@@ -72,12 +74,15 @@ class drvCaenV965Registers
                         CaenD16 clear;
                         };
 
-                struct ThresholdPair
+                /* struct ThresholdPair
                         {
                         CaenD16 high;
-                        CaenD16 low;
+						// CaenD16 unused_0; //hmr for V965A 
+                        CaenD16 low;					
+						// CaenD16 unused_1;  //hmr for V965A
                         };
-
+                */
+				
                 //
                 // Data:
                 // Registers: Reference page 33 of the manual
@@ -125,7 +130,8 @@ class drvCaenV965Registers
                 CaenD16 AAD;                            // 0x1070
                 CaenD16 BAD;                            // 0x1072
                 unsigned char unused8[12];              // 0x1074
-                ThresholdPair Thresholds[16];           // 0x1080-0x10bf
+                /* ThresholdPair Thresholds[CAEN_NUM_SIGNALS]; // 0x1080-0x10bf				 */
+				CaenD16  Thresholds[CAEN_NUM_SIGNALS*2]; // 0x1080-0x10bf	
                 char unused9[0x8000 - 0x10c0];          // 0x10c0-0x8000
                 CaenD16 ROM[0x4000];
 
@@ -165,9 +171,9 @@ class drvCaenV965Registers
                         OBB_CNT = 0x3f<<8,
 
                         // Datum bits
-                        OBB_CHANNEL_SHIFT = 1<<17,
-                        OBB_CHANNEL = 0xf<<17,
-                        OBB_RG = 1<<16, // 4.5 is wrong?
+                        OBB_CHANNEL_SHIFT = 1<<17,										
+                        OBB_CHANNEL = 0xf<<17,																				
+                        OBB_RG = 1<<16,  // 4.5 is wrong?					
                         OBB_UN = 1<<13,
                         OBB_OV = 1<<12,
                         OBB_ADC = 0xfff<<0,
@@ -268,34 +274,34 @@ setIped(unsigned short val)
         }
 
 inline void drvCaenV965Registers::
-enableChannel(int chan, bool enable)
+enableChannel(int chan, bool enable, int eight_ch_board)
         {
         unsigned short threshold;
 
-        threshold = 0xff & Thresholds[chan].high;
-        Thresholds[chan].high = threshold | (enable) ? 0 : 0x100;
-        threshold = 0xff & Thresholds[chan].low;
-        Thresholds[chan].low = threshold | (enable) ? 0 : 0x100;
+        threshold = 0xff & Thresholds[(chan<<eight_ch_board)*2];	
+        Thresholds[(chan<<eight_ch_board)*2] = threshold | (enable ? 0 : 0x100);
+        threshold = 0xff & Thresholds[((chan<<eight_ch_board)*2)+(1<<eight_ch_board)];
+        Thresholds[((chan<<eight_ch_board)*2)+(1<<eight_ch_board)] = threshold | (enable ? 0 : 0x100);
         }
-
+		
 inline void drvCaenV965Registers::
-enableLoChannel(int chan, bool enable)
+enableLoChannel(int chan, bool enable, int eight_ch_board)
         {
         unsigned short threshold;
 
-        threshold = 0xff & Thresholds[chan].low;
-        Thresholds[chan].low = threshold | (enable) ? 0 : 0x100;
+        threshold = 0xff & Thresholds[((chan<<eight_ch_board)*2)+(1<<eight_ch_board)];			
+        Thresholds[((chan<<eight_ch_board)*2)+(1<<eight_ch_board)] = threshold | (enable ? 0 : 0x100);
         }
-
+		
 inline void drvCaenV965Registers::
-enableHiChannel(int chan, bool enable)
+enableHiChannel(int chan, bool enable, int eight_ch_board)
         {
         unsigned short threshold;
 
-        threshold = 0xff & Thresholds[chan].high;
-        Thresholds[chan].high = threshold | (enable) ? 0 : 0x100;
+        threshold = 0xff & Thresholds[(chan<<eight_ch_board)*2];			
+        Thresholds[(chan<<eight_ch_board)*2] = threshold | (enable ? 0 : 0x100);
         }
-
+			
 inline int drvCaenV965Registers::
 getModelNumber()
         {
@@ -309,6 +315,7 @@ getSerialNumber()
         long rv = 0;
 
         rv = ROM[SerialMSB] & 0xff;
-        rv = ( rv << 8) | ROM[SerialLSB] & 0xff;
+		/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */				
+        rv = ( rv << 8) | (ROM[SerialLSB] & 0xff);
         return rv;
         }

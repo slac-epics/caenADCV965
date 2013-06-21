@@ -15,8 +15,11 @@ extern "C"
         // Find a board if possible
         int caenV965Probe();
 
-        // This configures up to 20 boards.
-        int caenV965Config( int board, size_t base, int addrSpace, int vector, int level, int states);
+        // This configures up to 20 boards. For 16-ch boards
+        int caenV965Config( int board, size_t base, int addrSpace, int vector, int level, int states);	
+		
+        // This configures up to 20 boards. For 8-ch boards
+        int caenV965Config_8( int board, size_t base, int addrSpace, int vector, int level, int states);				
 
         // report function
         int drvCaenV965Report( int level);
@@ -26,11 +29,13 @@ extern "C"
 
         // Reset the state counter
         int drvCaenV965Wait( int board);
+				
         }
 
 // Config:
 #define NUM_BOARDS (20)
 #define CAEN_NUM_CHAN (16)
+
 enum ADC_RANGE
         {
         ADC_HI = 0,
@@ -53,8 +58,9 @@ class drvCaenV965Device
 
                 static long init();
                 static long report( int level);
-                static int caenV965Config( int board, size_t base, int addrSpace, int vector, int level, int states);
-
+                static int caenV965Config( int board, size_t base, int addrSpace, int vector, int level, int states);			
+                static int caenV965Config_8( int board, size_t base, int addrSpace, int vector, int level, int states);					
+				
                 static void isr( void *pDev);
                 static void atExit( void *arg);
                 int readOutputBuffer();
@@ -90,6 +96,8 @@ class drvCaenV965Device
                                         // but rather is maintained by the ISR
                 unsigned char int_vector;
                 unsigned char int_level;
+				int eight_ch_board;
+				
                 struct chanData
                         {
                         unsigned short data; // Same as range 0=>high 1=>low

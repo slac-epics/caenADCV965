@@ -20,16 +20,17 @@
 #include <epicsExport.h>
 #include <epicsThread.h>
 #include <epicsExit.h>
+#include <epicsInterrupt.h> 	/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
 #include <drvSup.h>
 #include <devLib.h>
 #include <link.h>
+#include <epicsPrint.h>
 
 #include "drvV965.h"
 #include "drvV965p.h"
 
 /* Not necessary in rtems 4.9 */
 /* extern "C" void printk( char *fmt, ...); */
-
 
 // ================== drvCaenV965Device Methods ============================
 // Constructor = Let every member have a known value initially
@@ -59,8 +60,8 @@ drvCaenV965Device()
         // We'll use epicsEventCreate here.
         //
         wakeupCall = epicsEventCreate( epicsEventEmpty);
-
-        for( int i = 0;i < CAEN_NUM_CHAN;i++)
+		
+        for( int i = 0;i < (CAEN_NUM_CHAN);i++)
                 sampleState[i] = 0;
         }
 
@@ -126,34 +127,35 @@ int drvCaenV965Device::
 caenV965Config( int board, size_t base, int addrSpace, int vector, int level, int states)
         {
         epicsAddressType addrType;
-
+        unsigned long probe;   		/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
+		
         if( board < 0 || board >= NUM_BOARDS)
                 {
-                printf( "caenV965Config() Sorry, we don't have storage for board: %d\n", board);
+                errlogPrintf( "caenV965Config() Sorry, we don't have storage for board: %d\n", board);
                 return -1;
                 }
 
         if(  drvCaenV965Device::pDevice[board]!=NULL)
                 {
-                printf( "caenV965Config() Sorry, you have already initialized board: %d\n", board);
+                errlogPrintf( "caenV965Config() Sorry, you have already initialized board: %d\n", board);
                 return -1;
                 }
 
         if( addrSpace != 24 && addrSpace != 32)
                 {
-                printf( "caenV965Config() The ADC must be in A24 or A32 space;  using A%d is not recognized\n", addrSpace);
+                errlogPrintf( "caenV965Config() The ADC must be in A24 or A32 space;  using A%d is not recognized\n", addrSpace);
                 return -1;
                 }
 
         if( vector >255 || vector < 0)
                 {
-                printf( "caenV965Config() Sorry, the vector for board: %d must be >0 and <256 \n", board);
+                errlogPrintf( "caenV965Config() Sorry, the vector for board: %d must be >0 and <256 \n", board);
                 return -1;
                 }
 
         if( level > 7 || level < 0)
                 {
-                printf( "caenV965Config() Sorry, the vector for board: %d must be >0 and <256 \n", board);
+                errlogPrintf( "caenV965Config() Sorry, the level for board: %d must be >0 and <256 \n", board);
                 return -1;
                 }
 
@@ -174,22 +176,125 @@ caenV965Config( int board, size_t base, int addrSpace, int vector, int level, in
                 delete pvt;
                 return -1;
                 }
-
-        if( pvt->pBoard->getModelNumber() != drvCaenV965Registers::CAEN_MODEL_NUMBER)
+		/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */						
+        if( devReadProbe( sizeof( unsigned long),
+                          (volatile const void *)&pvt->pBoard,
+                          (void *) &probe) )
                 {
-                printf( "caenV965Config() The board at the given address is not the correct model (Expecting V%d, found V%d)\n", drvCaenV965Registers::CAEN_MODEL_NUMBER, pvt->pBoard->getModelNumber());
+                errlogPrintf( "caenV965Config() The board %d at base address %x does not exist\n", board, base);
+                (void)devUnregisterAddress( addrType, base, "CaenV965");
+                delete pvt;
+                return -1;
+                }				
+
+        if( (pvt->pBoard->getModelNumber() != drvCaenV965Registers::CAEN_MODEL_NUMBER))
+                {
+                errlogPrintf( "caenV965Config() The board at the given address is not the correct model (Expecting V%d, found V%d)\n", drvCaenV965Registers::CAEN_MODEL_NUMBER, pvt->pBoard->getModelNumber());
                 (void)devUnregisterAddress( addrType, base, "CaenV965");
                 delete pvt;
                 return -1;
                 }
-
+       
+		
         pDevice[board] = pvt;
         pvt->int_level = level;
         pvt->int_vector = vector;
+		pvt->eight_ch_board = 0;
+		
+        errlogPrintf("caenV965Config(): channels=%d\n",(drvCaenV965Registers::CAEN_NUM_SIGNALS));
+		
+        for( int i = 0; i < (drvCaenV965Registers::CAEN_NUM_SIGNALS);i++)
+                pvt->pBoard->enableChannel( i, false, pvt->eight_ch_board);
 
-        for( int i = 0; i < drvCaenV965Registers::CAEN_NUM_SIGNALS;i++)
-                pvt->pBoard->enableChannel( i, false);
+        pvt->numStates = states;
+        pvt->currentState = 0;
 
+        return 0;
+        }
+// Configure a device object once created.
+int drvCaenV965Device::
+caenV965Config_8( int board, size_t base, int addrSpace, int vector, int level, int states)
+        {
+        epicsAddressType addrType;
+        unsigned long probe;   		/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
+		
+        if( board < 0 || board >= NUM_BOARDS)
+                {
+                errlogPrintf( "caenV965Config_8() Sorry, we don't have storage for board: %d\n", board);
+                return -1;
+                }
+
+        if(  drvCaenV965Device::pDevice[board]!=NULL)
+                {
+                errlogPrintf( "caenV965Config_8() Sorry, you have already initialized board: %d\n", board);
+                return -1;
+                }
+
+        if( addrSpace != 24 && addrSpace != 32)
+                {
+                errlogPrintf( "caenV965Config_8() The ADC must be in A24 or A32 space;  using A%d is not recognized\n", addrSpace);
+                return -1;
+                }
+
+        if( vector >255 || vector < 0)
+                {
+                errlogPrintf( "caenV965Config_8() Sorry, the vector for board: %d must be >0 and <256 \n", board);
+                return -1;
+                }
+
+        if( level > 7 || level < 0)
+                {
+                errlogPrintf( "caenV965Config_8() Sorry, the vector for board: %d must be >0 and <256 \n", board);
+                return -1;
+                }
+
+        // looks good so far:
+
+        drvCaenV965Device *pvt = new drvCaenV965Device;
+
+        if( addrSpace == 24)
+                addrType = atVMEA24;
+            else
+                addrType = atVMEA32;
+
+        /*
+        if( devRegisterAddress( "CaenV965", atVMEA24, base, sizeof( drvCaenV965Registers), (volatile void **)&pvt->pBoard) != 0)
+        */
+        if( devRegisterAddress( "CaenV965", addrType, base, sizeof( drvCaenV965Registers), (volatile void **)&pvt->pBoard) != 0)
+                {
+                delete pvt;
+                return -1;
+                }
+		/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */						
+        if( devReadProbe( sizeof( unsigned long),
+                          (volatile const void *)&pvt->pBoard,
+                          (void *) &probe) )
+                {
+                errlogPrintf( "caenV965Config_8() The board %d at base address %x does not exist\n", board, base);
+                (void)devUnregisterAddress( addrType, base, "CaenV965");
+                delete pvt;
+                return -1;
+                }				
+
+        if( (pvt->pBoard->getModelNumber() != drvCaenV965Registers::CAEN_MODEL_NUMBER))
+                {
+                errlogPrintf( "caenV965Config_8() The board at the given address is not the correct model (Expecting V%d, found V%d)\n", drvCaenV965Registers::CAEN_MODEL_NUMBER, pvt->pBoard->getModelNumber());
+                (void)devUnregisterAddress( addrType, base, "CaenV965");
+                delete pvt;
+                return -1;
+                }
+       
+		
+        pDevice[board] = pvt;
+        pvt->int_level = level;
+        pvt->int_vector = vector;
+		pvt->eight_ch_board = 1;
+
+        errlogPrintf("caenV965Config_8(): channels=%d\n",(drvCaenV965Registers::CAEN_NUM_SIGNALS)>>pvt->eight_ch_board);
+		
+        for( int i = 0; i < (drvCaenV965Registers::CAEN_NUM_SIGNALS)>>pvt->eight_ch_board;i++)
+                /* pvt->pBoard->enableChannel_8( i, false); */
+                pvt->pBoard->enableChannel( i, false, pvt->eight_ch_board);
         pvt->numStates = states;
         pvt->currentState = 0;
 
@@ -221,9 +326,9 @@ isr( void *pdev)
                         break;
 
                 case drvCaenV965Registers::OBT_valid_datum:
-                        chan=(buffer & drvCaenV965Registers::OBB_CHANNEL)/drvCaenV965Registers::OBB_CHANNEL_SHIFT;
+                        chan=(buffer & (drvCaenV965Registers::OBB_CHANNEL)<<pThis->eight_ch_board)/((drvCaenV965Registers::OBB_CHANNEL_SHIFT)<<pThis->eight_ch_board);
                         //chan=(buffer>>18)&15;
-                        range=(buffer & drvCaenV965Registers::OBB_RG)?ADC_LO:ADC_HI;
+                        range=(buffer & ((drvCaenV965Registers::OBB_RG)<<pThis->eight_ch_board))?ADC_LO:ADC_HI;
                         if( pThis->sampleState[chan] && pThis->currentState == 0)
                                 // request to set the threshold;
                                 pThis->chanData[chan][range].threshold=(buffer & drvCaenV965Registers::OBB_ADC);
@@ -263,7 +368,9 @@ isr( void *pdev)
                 default:
                         scanIoRequest( pThis->ioscanpvt);
                         eob = 1;
-                        printk("In drvCaenV965Device::isr() - Rec OBT_not_valid_datum\n");
+				        /* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */								
+                        /* printk("In drvCaenV965Device::isr() - Rec OBT_not_valid_datum\n"); */
+                        epicsInterruptContextMessage("In drvCaenV965Device::isr() - Rec OBT_not_valid_datum\n");						
                         break;
                         }
                 }
@@ -288,7 +395,7 @@ int drvCaenV965Device::
 readOutputBuffer()
         {
 
-        for( int i = 0;i < drvCaenV965Registers::CAEN_NUM_SIGNALS;i++)
+        for( int i = 0;i < ((drvCaenV965Registers::CAEN_NUM_SIGNALS)>>eight_ch_board);i++)
                 printf("Chan %d: h=%d/%d l=%d/%d ss=%d\n",
                         i,
                         chanData[i][ADC_HI].data,
@@ -352,7 +459,7 @@ config( int vector, int level)
 
         InterruptVector = vector;
         InterruptLevel = level;
-        printf("drvCaenV965Registers::config(int %d,int %d)\n",vector,level);
+        errlogPrintf("drvCaenV965Registers::config(int %d,int %d)\n",vector,level);
         return 0;
         }
 
@@ -390,7 +497,7 @@ recordInit( DBLINK *pLink, dbCommon *pRec)
 
         signal = pLink->value.vmeio.signal;
 
-        if( signal < 0 || drvCaenV965Registers::CAEN_NUM_SIGNALS < signal)
+        if( signal < 0 || ((drvCaenV965Registers::CAEN_NUM_SIGNALS)>>pDev->eight_ch_board) < signal)
                 return -1;
 
         if( pLink->value.vmeio.parm)
@@ -405,11 +512,11 @@ recordInit( DBLINK *pLink, dbCommon *pRec)
                 break;
 
         case 'H': // high ADC
-                pDev->pBoard->enableHiChannel( signal, true);
+                    pDev->pBoard->enableHiChannel( signal, true, pDev->eight_ch_board);
                 break;
 
-        case 'L': // Low ADC
-                pDev->pBoard->enableLoChannel( signal, true);
+        case 'L': // Low ADC{
+                    pDev->pBoard->enableLoChannel( signal, true, pDev->eight_ch_board);
                 break;
 
         case 'G': // gain value
@@ -419,16 +526,17 @@ recordInit( DBLINK *pLink, dbCommon *pRec)
                 break;
 
         case 0:
-                pDev->pBoard->enableChannel( signal, true);
+                    pDev->pBoard->enableChannel( signal, true, pDev->eight_ch_board);
                 break;
 
         case '1' ... '9':
                 pDev->sampleState[signal] = atoi( pparm);
-                pDev->pBoard->enableChannel( signal, true);
+
+                pDev->pBoard->enableChannel( signal, true, pDev->eight_ch_board);
                 break;
 
         default:
-                printf("drvCaenV965: Invalid option: %c on card %d signal %d\n", *pparm?*pparm:' ',card,signal);
+                errlogPrintf("drvCaenV965: Invalid option: %c on card %d signal %d\n", *pparm?*pparm:' ',card,signal);
                 return -1;
                 break;
                 }
@@ -460,7 +568,7 @@ getValue( int signal, const char * pparm , epicsInt32 * value) // Returns status
         int rv = 0;
         long tmp;
 
-        if( signal < 0 || drvCaenV965Registers::CAEN_NUM_SIGNALS < signal)
+        if( signal < 0 || ((drvCaenV965Registers::CAEN_NUM_SIGNALS)>>eight_ch_board) < signal)
                 return -1;
 
 	// Grab the field type:
@@ -561,7 +669,7 @@ putValue( int signal , const char * pparm, epicsInt32  value) // Return status
         int parm = 0;
         int sparm = 0;
 
-        if( signal < 0 || drvCaenV965Registers::CAEN_NUM_SIGNALS < signal) 
+        if( signal < 0 || ((drvCaenV965Registers::CAEN_NUM_SIGNALS)>>eight_ch_board) < signal) 
                 return -1;
 
         if( pparm)
@@ -604,7 +712,7 @@ getIOIntInfo( int cmd, DBLINK * pLink, IOSCANPVT * ppvt)
         if( card < 0 || card >= NUM_BOARDS || NULL == ( pDev= pDevice[card]))
                 return -1;
         int signal = pLink->value.vmeio.signal;
-        if( signal < 0 || drvCaenV965Registers::CAEN_NUM_SIGNALS < signal)
+        if( signal < 0 || ((drvCaenV965Registers::CAEN_NUM_SIGNALS)>>pDev->eight_ch_board) < signal)
                 return -1;
 
 
@@ -618,7 +726,9 @@ setState( int newState)
         {
 
         if( currentState > 1 && currentState < numStates)
-                printk( "drvCaenV965Device::setState() currentState < numStates %d %d\n",currentState, numStates);
+				/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
+                /* printk( "drvCaenV965Device::setState() currentState < numStates %d %d\n",currentState, numStates); */
+	                        errlogPrintf( "drvCaenV965Device::setState() currentState < numStates %d %d\n",currentState, numStates);
         currentState = newState;
         }
 
@@ -631,6 +741,13 @@ caenV965Config( int board, size_t base, int addrSpace, int vector, int level, in
 
 	return drvCaenV965Device::caenV965Config( board, base, addrSpace, vector, level, states);	
         }
+		
+extern "C"  int
+caenV965Config_8( int board, size_t base, int addrSpace, int vector, int level, int states)
+        {
+
+	return drvCaenV965Device::caenV965Config_8( board, base, addrSpace, vector, level, states);	
+        }		
 
 // Handy to find a board
 extern "C" int

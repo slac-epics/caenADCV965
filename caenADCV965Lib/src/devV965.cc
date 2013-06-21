@@ -68,7 +68,9 @@ InitRecord( aiRecord *pRec)
 
         if( drvCaenV965Device::recordInit( &pRec->inp, (dbCommon *)pRec) != 0)
                 {
-                recGblRecordError(S_db_badField, (void *)pRec, "devCaenV965AI (init_record) Illegal INP field");
+                /* recGblRecordError(S_db_badField, (void *)pRec, "devCaenV965AI (init_record) Illegal INP field"); */
+				/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */
+				recGblRecordError(S_db_badField, (void *)pRec, (char *)"devCaenV965AI (init_record) Illegal INP field");
                 return S_db_badField;
                 }
 
@@ -140,7 +142,9 @@ InitRecord( longinRecord *pRec)
 
         if( drvCaenV965Device::recordInit( &pRec->inp,(dbCommon *)pRec) != 0)
                 {
-                recGblRecordError( S_db_badField, (void *)pRec, "devCaenV965Longin (init_record) Illegal INP field");
+                /* recGblRecordError( S_db_badField, (void *)pRec, "devCaenV965Longin (init_record) Illegal INP field"); */
+				/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
+				recGblRecordError( S_db_badField, (void *)pRec, (char *)"devCaenV965Longin (init_record) Illegal INP field");		
                 return S_db_badField;
                 }
         return 0;
@@ -197,7 +201,9 @@ InitRecord( longoutRecord *pRec)
         
         if( drvCaenV965Device::recordInit( &pRec->out, (dbCommon *)pRec) != 0)
                 {
-                recGblRecordError( S_db_badField, (void *)pRec, "devCaenV965Longout (init_record) Illegal OUT field");
+                /* recGblRecordError( S_db_badField, (void *)pRec, "devCaenV965Longout (init_record) Illegal OUT field"); */
+				/* scondam: 17-Jun-2013: Fix picked from Spear per S.Allison */		
+				recGblRecordError( S_db_badField, (void *)pRec, (char *)"devCaenV965Longout (init_record) Illegal OUT field");				
                 return S_db_badField;
                 }
         return 0;
