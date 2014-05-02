@@ -26,6 +26,10 @@
 caenADCV965-R2-2-5:  Shantha Condamoor 
                      Modified on 02-May-2014
 					 
+					 Added LCLS-name specific ADC module and channel templates:
+					 adc_module.template
+					 adc_channel.template	
+					 
 caenADCV965-R2-2-4:  Shantha Condamoor 
                      Modified on 17-Jun-2013
 					The Caen ADC driver was modified:
