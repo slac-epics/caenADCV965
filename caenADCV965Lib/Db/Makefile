@@ -9,8 +9,8 @@ include $(TOP)/configure/CONFIG
 
 DB += caen_V965.template
 DB += caen_V965Debug.template
-
-
+DB += adc_module.template
+DB += adc_channel.template
 #----------------------------------------------------
 
 include $(TOP)/configure/RULES
