@@ -16,6 +16,7 @@ record( ai, "$(dev):$(area):$(location):QDCRAW")
         field( INP, "#C$(card) S$(sig) @")
         field( LINR, "NO CONVERSION")
         field( FLNK, "$(flnk)")
+        field( TSE,  "$(tse)")		
         }
 
 #
