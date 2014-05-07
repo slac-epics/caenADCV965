@@ -23,6 +23,11 @@
 #
 #==============================================================
 #
+caenADCV965-R2-2-6:  Shantha Condamoor 
+                     Modified on 07-May-2014
+					 
+					 $(tse) macro added to the :QDCRAW record for BSA purposes.
+					 
 caenADCV965-R2-2-5:  Shantha Condamoor 
                      Modified on 02-May-2014
 					 
