@@ -36,3 +36,35 @@ caenV965Config( 0, 0x00A00000, 24, 90, 3, 0)
 
 # 8-channel board - add "_8" to caenV965Config
 caenV965Config_8( 1, 0x00C00000, 24, 91, 3, 0)
+================================================================
+
+Shantha Condamoor
+4-June-2014:
+
+Here is some insight into the relationship between the QDCRAW, threshold slope etc. and how
+QDCRAW is calculated in the high gain and low gain modes:
+
+When signals are at pedestal levels, QDCRAW and QDCRAWLO have about the same values.
+ADC is in the high resolution (high gain) mode.
+
+At this time, QDCRAW = (QDCRAWLO - lo threshold) * slope.
+
+At modest signal levels (QDCRAW > 3840), QDCRAW and QDCRAWLO diverge;
+
+At this time,
+
+ QDCRAW = (8 x (QDCRAWHI - hi threshold)) * slope
+
+since ADC is auto-ranging from the high resolution (high gain) channel to the lower gain channel.
+
+It would definitely be useful to archive both HI and LO - 
+even if only one of them is used in deriving QDCRAW at any time.
+
+slope = QDCRAW.ASLO
+High threshold  = QDCHITHRESH 
+Low threshold = QDCLOTHRESH
+
+For a sample display that makes all this mysterious calculations clear with labels,
+look at $EDM/ws/pmtscreen_gadc.edl.
+
+================================================================
