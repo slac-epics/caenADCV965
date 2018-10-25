@@ -23,6 +23,11 @@
 #
 #==============================================================
 #
+R2.3.0             : Marcio Donadio
+                     Modified on 25-Oct-2018
+
+                                         Brought module to EPICS 3.15 and GIT workflow
+
 caenADCV965-R2-2-6:  Shantha Condamoor 
                      Modified on 07-May-2014
 					 
